@@ -40,21 +40,20 @@
 			</div>
 
 			<!-- SAHIFA 2: KVEST / MINI O'YIN -->
-			<div id="page-2" class="page hidden space-y-6">
-				<h2 class="text-xl font-bold text-gray-800">Manzilga yetib borish uchun yurakchani bosing! ❤️</h2>
-				<p class="text-sm text-gray-500" id="quest-counter">Qadamlar: <span id="clicks">0</span> / 5</p>
-
-				<!-- O'yinmaydoni -->
-				<div
-					class="h-64 border-2 border-dashed border-rose-300 rounded-2xl relative bg-rose-50/50 flex items-center justify-center overflow-hidden"
-					id="game-area">
-					<button
-						id="target-heart"
-						onclick="handleHeartClick()"
-						class="absolute text-4xl transition-all duration-300 select-none cursor-pointer hover:scale-125 active:scale-90">
-						💖
-					</button>
+			<div id="page-2" class="page hidden space-y-4">
+				<h2 class="text-lg font-bold text-gray-800">Yurakchalarni tutib qol! ❤️</h2>
+				<div class="flex justify-between text-sm px-2 text-gray-600 font-medium">
+					<span>Yig'ildi: <strong id="score" class="text-rose-500">0</strong> / 10</span>
+					<span>Xato: <strong id="misses" class="text-red-500">0</strong> / 3</span>
 				</div>
+
+				<!-- Yangi Mini O'yin maydoni -->
+				<div
+					class="h-72 border-2 border-dashed border-rose-300 rounded-2xl relative bg-rose-50/50 overflow-hidden cursor-crosshair select-none"
+					id="game-area">
+					<!-- Dinamik elementlar shu yerga tushadi -->
+				</div>
+				<p class="text-xs text-gray-500">Faqat qizil yuraklarni bosing (💖), qoralardan ehtiyot bo'ling!</p>
 			</div>
 
 			<!-- SAHIFA 3: ASOSIY SAVOL -->
@@ -150,9 +149,12 @@
 		<!-- JavaScript Qismi -->
 		<script>
 			let currentPage = 1;
-			let clickCount = 0;
-			const targetClicks = 5;
-			let selectedPlaceName = 'Shinam kafe'; // Standart tanlov
+			let score = 0;
+			let misses = 0;
+			const targetScore = 10;
+			let gameInterval = null;
+			let activeItems = [];
+			let selectedPlaceName = 'Shinam kafe';
 
 			function goToPage(pageNumber) {
 				document.querySelectorAll('.page').forEach(page => {
@@ -162,48 +164,101 @@
 				const btnNo = document.getElementById('btn-no');
 				btnNo.classList.add('hidden');
 
+				// Agar 2-sahifadan chiqib ketsa, o'yinni to'xtatish
+				if (currentPage === 2 && pageNumber !== 2) {
+					stopGame();
+				}
+
 				document.getElementById(`page-${pageNumber}`).classList.remove('hidden');
 				currentPage = pageNumber;
 
 				if (pageNumber === 2) {
-					resetGame();
+					startGame();
 				} else if (pageNumber === 3) {
 					showInitialNoButton();
 				}
 			}
 
-			// O'yin mantiqi
-			function handleHeartClick() {
-				clickCount++;
-				document.getElementById('clicks').innerText = clickCount;
+			// --- YANGI MINI O'YIN MANTIQI ---
+			function startGame() {
+				score = 0;
+				misses = 0;
+				document.getElementById('score').innerText = score;
+				document.getElementById('misses').innerText = misses;
+				document.getElementById('game-area').innerHTML = '';
+				activeItems = [];
 
-				if (clickCount >= targetClicks) {
-					goToPage(3);
-				} else {
-					moveHeartRandomly();
-				}
+				if (gameInterval) clearInterval(gameInterval);
+
+				// Har 700ms da yangi element tushiramiz
+				gameInterval = setInterval(spawnGameItem, 700);
 			}
 
-			function moveHeartRandomly() {
-				const heart = document.getElementById('target-heart');
+			function stopGame() {
+				if (gameInterval) clearInterval(gameInterval);
+				document.getElementById('game-area').innerHTML = '';
+			}
+
+			function spawnGameItem() {
+				if (currentPage !== 2) return;
+
 				const gameArea = document.getElementById('game-area');
+				const item = document.createElement('div');
 
-				const maxX = gameArea.clientWidth - 60;
-				const maxY = gameArea.clientHeight - 60;
+				// 80% ehtimollik bilan yaxshi yurak (💖), 20% ehtimol bilan qora yurak (💔) chiqadi
+				const isBad = Math.random() < 0.2;
+				item.innerText = isBad ? '💔' : '💖';
+				item.className = 'absolute text-3xl cursor-pointer transition-transform hover:scale-125 select-none';
 
+				// Tasodifiy gorizontal pozitsiya
+				const maxX = gameArea.clientWidth - 40;
 				const randomX = Math.floor(Math.random() * maxX);
-				const randomY = Math.floor(Math.random() * maxY);
+				item.style.left = `${randomX}px`;
+				item.style.top = `-40px`;
 
-				heart.style.left = `${randomX}px`;
-				heart.style.top = `${randomY}px`;
-			}
+				// Bosish hodisasi
+				item.onmousedown = item.ontouchstart = e => {
+					e.preventDefault();
+					if (isBad) {
+						misses++;
+						document.getElementById('misses').innerText = misses;
+						item.remove();
+						if (misses >= 3) {
+							alert("Oh, xato yurakni bosib yubordingiz! Qaytadan urinib ko'ramiz. 😊");
+							startGame();
+						}
+					} else {
+						score++;
+						document.getElementById('score').innerText = score;
+						item.remove();
+						if (score >= targetScore) {
+							stopGame();
+							goToPage(3);
+						}
+					}
+				};
 
-			function resetGame() {
-				clickCount = 0;
-				document.getElementById('clicks').innerText = clickCount;
-				const heart = document.getElementById('target-heart');
-				heart.style.left = 'auto';
-				heart.style.top = 'auto';
+				gameArea.appendChild(item);
+
+				// Pastga tushish animatsiyasi
+				let posY = -40;
+				const fallSpeed = 2 + Math.random() * 2; // Tushish tezligi
+
+				const fallInterval = setInterval(() => {
+					if (currentPage !== 2) {
+						clearInterval(fallInterval);
+						return;
+					}
+					posY += fallSpeed;
+					item.style.top = `${posY}px`;
+
+					// Agar pastga tushib ketib qolsa
+					if (posY > gameArea.clientHeight) {
+						clearInterval(fallInterval);
+						item.remove();
+						// Agar yaxshi yurak o'tkazib yuborilsa, hisobga ta'sir qilmasligi yoki xato sanalishi mumkin (bu yerda shunchaki o'chadi)
+					}
+				}, 30);
 			}
 
 			// "Yo'q" tugmasi
@@ -249,21 +304,18 @@
 					return;
 				}
 
-				// Sanani chiroyliformatga o'tkazish
 				const formattedDate = new Date(dateInput).toLocaleString('uz-UZ', {
 					dateStyle: 'full',
 					timeStyle: 'short',
 				});
 
-				// Xulosani chiqarish
 				document.getElementById('result-summary').innerHTML = `
-                <div>📍 <b>Manzil:</b> ${selectedPlaceName}</div>
-                <div>📅 <b>Sana va vaqt:</b> ${formattedDate}</div>
-            `;
+            <div>📍 <b>Manzil:</b> ${selectedPlaceName}</div>
+            <div>📅 <b>Sana va vaqt:</b> ${formattedDate}</div>
+        `;
 
 				goToPage(5);
 
-				// Konfetti otish
 				confetti({
 					particleCount: 200,
 					spread: 100,
