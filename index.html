@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="uz">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Maxsus Taklif 💌</title>
+		<!-- Tailwind CSS CDN -->
+		<script src="https://cdn.tailwindcss.com"></script>
+		<!-- Google Fonts: Poppins -->
+		<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
+		<!-- Canvas Confetti CDN -->
+		<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+		<style>
+			body {
+				font-family: 'Poppins', sans-serif;
+				background: linear-gradient(135deg, #fbcfe8 0%, #f43f5e 100%);
+			}
+			/* Tanlangan joy kartochkasi effekti */
+			.place-card.selected {
+				border-color: #f43f5e;
+				background-color: #fff1f2;
+				transform: scale(1.05);
+			}
+		</style>
+	</head>
+	<body class="min-h-screen flex items-center justify-center p-4 overflow-hidden relative">
+		<div
+			id="app"
+			class="w-full max-w-md bg-white/90 backdrop-blur-md rounded-3xl shadow-2xl p-6 text-center relative transition-all duration-500">
+			<!-- SAHIFA 1: KIRISH -->
+			<div id="page-1" class="page space-y-6">
+				<div class="text-6xl animate-bounce">💌</div>
+				<h1 class="text-2xl font-bold text-gray-800">Siz uchun maxsus topshiriq bor!</h1>
+				<p class="text-gray-600 text-sm">Bu oddiy sayt emas, kichik sarguzasht. Tayyormisiz?</p>
+				<button
+					onclick="goToPage(2)"
+					class="w-full bg-rose-500 hover:bg-rose-600 text-white font-semibold py-3 px-6 rounded-2xl shadow-lg transition-transform active:scale-95">
+					Boshlash 🚀
+				</button>
+			</div>
+
+			<!-- SAHIFA 2: KVEST / MINI O'YIN -->
+			<div id="page-2" class="page hidden space-y-6">
+				<h2 class="text-xl font-bold text-gray-800">Manzilga yetib borish uchun yurakchani bosing! ❤️</h2>
+				<p class="text-sm text-gray-500" id="quest-counter">Qadamlar: <span id="clicks">0</span> / 5</p>
+
+				<!-- O'yinmaydoni -->
+				<div
+					class="h-64 border-2 border-dashed border-rose-300 rounded-2xl relative bg-rose-50/50 flex items-center justify-center overflow-hidden"
+					id="game-area">
+					<button
+						id="target-heart"
+						onclick="handleHeartClick()"
+						class="absolute text-4xl transition-all duration-300 select-none cursor-pointer hover:scale-125 active:scale-90">
+						💖
+					</button>
+				</div>
+			</div>
+
+			<!-- SAHIFA 3: ASOSIY SAVOL -->
+			<div id="page-3" class="page hidden space-y-6">
+				<div class="text-6xl animate-pulse">🎉</div>
+				<h2 class="text-2xl font-bold text-gray-800">Tabriklaymiz, marraga yetib keldingiz!</h2>
+				<p class="text-lg text-gray-700 font-semibold">Mening bilan uchrashuvga chiqasizmi?</p>
+
+				<div class="pt-4 flex justify-center">
+					<button
+						onclick="goToPage(4)"
+						class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 px-4 rounded-2xl shadow-lg transition-transform active:scale-95">
+						Ha! 🥰
+					</button>
+				</div>
+			</div>
+
+			<!-- SAHIFA 4: JOY VA SANA TANLASH -->
+			<div id="page-4" class="page hidden space-y-4">
+				<h2 class="text-xl font-bold text-rose-600">Zo'r! Endi tafsilotlarni kelishib olamiz 🌸</h2>
+				<p class="text-xs text-gray-500">Qayerga borishni va qaysi sana ma'qul kelishini belgilang:</p>
+
+				<!-- Joylar Gridi -->
+				<div class="grid grid-cols-2 gap-3 text-left">
+					<div
+						onclick="selectPlace(this, '☕️ Shinam kafe')"
+						class="place-card border-2 border-gray-200 p-3 rounded-2xl cursor-pointer transition-all hover:border-rose-300">
+						<div class="text-2xl">☕️</div>
+						<div class="font-semibold text-sm text-gray-800">Kafe</div>
+						<div class="text-[10px] text-gray-500">Kofe va shirinliklar</div>
+					</div>
+					<div
+						onclick="selectPlace(this, '🌳 Istirohat bog\'i')"
+						class="place-card border-2 border-gray-200 p-3 rounded-2xl cursor-pointer transition-all hover:border-rose-300">
+						<div class="text-2xl">🌳</div>
+						<div class="font-semibold text-sm text-gray-800">Park</div>
+						<div class="text-[10px] text-gray-500">Toza havo va sayr</div>
+					</div>
+					<div
+						onclick="selectPlace(this, '🍿 Kinozal')"
+						class="place-card border-2 border-gray-200 p-3 rounded-2xl cursor-pointer transition-all hover:border-rose-300">
+						<div class="text-2xl">🍿</div>
+						<div class="font-semibold text-sm text-gray-800">Kino</div>
+						<div class="text-[10px] text-gray-500">Qiziqarli film</div>
+					</div>
+					<div
+						onclick="selectPlace(this, '🍽️ Restoran')"
+						class="place-card border-2 border-gray-200 p-3 rounded-2xl cursor-pointer transition-all hover:border-rose-300">
+						<div class="text-2xl">🍽️</div>
+						<div class="font-semibold text-sm text-gray-800">Restoran</div>
+						<div class="text-[10px] text-gray-500">Mazali kechki ovqat</div>
+					</div>
+				</div>
+
+				<!-- Sana va vaqt inputi -->
+				<div class="text-left space-y-1 pt-1">
+					<label class="text-xs font-semibold text-gray-700">Qaysi sana va vaqtda?</label>
+					<input
+						type="datetime-local"
+						id="date-input"
+						class="w-full p-2.5 border-2 border-gray-200 rounded-xl text-sm focus:outline-none focus:border-rose-500 text-gray-700 bg-gray-50" />
+				</div>
+
+				<button
+					onclick="finishInvite()"
+					class="w-full bg-rose-500 hover:bg-rose-600 text-white font-semibold py-3 rounded-xl shadow-md transition-transform active:scale-95">
+					Tasdiqlash ✨
+				</button>
+			</div>
+
+			<!-- SAHIFA 5: YAKUNIY (SUCCESS) -->
+			<div id="page-5" class="page hidden space-y-4">
+				<div class="text-6xl animate-bounce">🥳🎉</div>
+				<h2 class="text-2xl font-bold text-rose-600">Uchrashuv tasdiqlandi!</h2>
+				<div
+					id="result-summary"
+					class="bg-rose-50 border border-rose-200 rounded-2xl p-4 text-sm text-gray-700 space-y-2 text-left">
+					<!-- Bu yerga tanlangan ma'lumotlar JS orqali yoziladi -->
+				</div>
+				<p class="text-xs text-gray-500">Tez orada ko'rishguncha! 🌹</p>
+			</div>
+		</div>
+
+		<!-- BUTUN EKRAN BO'YLAB QOCHADIGAN "YO'Q" TUGMASI -->
+		<button
+			id="btn-no"
+			onmouseover="moveNoButton()"
+			onclick="moveNoButton()"
+			class="hidden fixed bg-white/90 hover:bg-gray-100 text-gray-700 font-bold py-3 px-6 rounded-2xl shadow-xl transition-all duration-200 z-50 border border-gray-200">
+			Yo'q 🙈
+		</button>
+
+		<!-- JavaScript Qismi -->
+		<script>
+			let currentPage = 1;
+			let clickCount = 0;
+			const targetClicks = 5;
+			let selectedPlaceName = 'Shinam kafe'; // Standart tanlov
+
+			function goToPage(pageNumber) {
+				document.querySelectorAll('.page').forEach(page => {
+					page.classList.add('hidden');
+				});
+
+				const btnNo = document.getElementById('btn-no');
+				btnNo.classList.add('hidden');
+
+				document.getElementById(`page-${pageNumber}`).classList.remove('hidden');
+				currentPage = pageNumber;
+
+				if (pageNumber === 2) {
+					resetGame();
+				} else if (pageNumber === 3) {
+					showInitialNoButton();
+				}
+			}
+
+			// O'yin mantiqi
+			function handleHeartClick() {
+				clickCount++;
+				document.getElementById('clicks').innerText = clickCount;
+
+				if (clickCount >= targetClicks) {
+					goToPage(3);
+				} else {
+					moveHeartRandomly();
+				}
+			}
+
+			function moveHeartRandomly() {
+				const heart = document.getElementById('target-heart');
+				const gameArea = document.getElementById('game-area');
+
+				const maxX = gameArea.clientWidth - 60;
+				const maxY = gameArea.clientHeight - 60;
+
+				const randomX = Math.floor(Math.random() * maxX);
+				const randomY = Math.floor(Math.random() * maxY);
+
+				heart.style.left = `${randomX}px`;
+				heart.style.top = `${randomY}px`;
+			}
+
+			function resetGame() {
+				clickCount = 0;
+				document.getElementById('clicks').innerText = clickCount;
+				const heart = document.getElementById('target-heart');
+				heart.style.left = 'auto';
+				heart.style.top = 'auto';
+			}
+
+			// "Yo'q" tugmasi
+			function showInitialNoButton() {
+				const btnNo = document.getElementById('btn-no');
+				btnNo.classList.remove('hidden');
+
+				const screenWidth = window.innerWidth;
+				const screenHeight = window.innerHeight;
+
+				btnNo.style.left = `${screenWidth / 2 + 20}px`;
+				btnNo.style.top = `${screenHeight / 2 + 60}px`;
+			}
+
+			function moveNoButton() {
+				const btnNo = document.getElementById('btn-no');
+				const padding = 50;
+				const maxX = window.innerWidth - btnNo.offsetWidth - padding;
+				const maxY = window.innerHeight - btnNo.offsetHeight - padding;
+
+				const randomX = Math.max(padding, Math.floor(Math.random() * maxX));
+				const randomY = Math.max(padding, Math.floor(Math.random() * maxY));
+
+				btnNo.style.left = `${randomX}px`;
+				btnNo.style.top = `${randomY}px`;
+			}
+
+			// Joyni tanlash
+			function selectPlace(element, placeName) {
+				document.querySelectorAll('.place-card').forEach(card => {
+					card.classList.remove('selected');
+				});
+				element.classList.add('selected');
+				selectedPlaceName = placeName;
+			}
+
+			// Yakuniy tasdiqlash
+			function finishInvite() {
+				const dateInput = document.getElementById('date-input').value;
+
+				if (!dateInput) {
+					alert('Iltimos, sanani va vaqtni tanlang! 😊');
+					return;
+				}
+
+				// Sanani chiroyliformatga o'tkazish
+				const formattedDate = new Date(dateInput).toLocaleString('uz-UZ', {
+					dateStyle: 'full',
+					timeStyle: 'short',
+				});
+
+				// Xulosani chiqarish
+				document.getElementById('result-summary').innerHTML = `
+                <div>📍 <b>Manzil:</b> ${selectedPlaceName}</div>
+                <div>📅 <b>Sana va vaqt:</b> ${formattedDate}</div>
+            `;
+
+				goToPage(5);
+
+				// Konfetti otish
+				confetti({
+					particleCount: 200,
+					spread: 100,
+					origin: { y: 0.6 },
+				});
+			}
+		</script>
+	</body>
+</html>
